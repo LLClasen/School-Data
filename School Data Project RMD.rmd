@@ -1,0 +1,70 @@
+---
+title: "DSC 520 Final Project"
+author: "Lara Clasen"
+date: "6/1/2019"
+output: html_document
+---
+
+
+```{r include=FALSE}
+library(readr)
+library(ggplot2)
+library(pastecs)
+library(DataExplorer)
+library(dplyr)
+```
+
+First I read in my Excel document containing the data sat I obtained from the State of Minnesota.
+The data dictionary for this data can be found in the State of Minnesota Data Tool (https://apps.deed.state.mn.us/lmi/etd/Results.aspx).
+
+```{r}
+mydata <- read.csv("schooldata.csv")
+head(mydata)
+```
+
+I need to adjust my data types so that I can analyze them. I change the percentage values to numeric and remove the dollar signs and commas from the currency values.
+
+```{r}
+mydata$WFT2 <- as.numeric(gsub('\\$|,', '', mydata$WFT2))
+mydata$WFT3 <- as.numeric(gsub('\\$|,', '', mydata$WFT3))
+mydata$WFT4 <- as.numeric(gsub('\\$|,', '', mydata$WFT4))
+mydata$PFT2 <- as.numeric(mydata$PFT2)
+mydata$PFT3 <- as.numeric(mydata$PFT3)
+mydata$PFT4 <- as.numeric(mydata$PFT4)
+
+head(mydata)
+str(mydata)
+dim(mydata)
+glimpse(mydata)
+stat.desc(mydata)
+summary(mydata)
+```
+
+Next is to obtain some visual representation of the data.
+
+```{r} 
+ggplot(mydata, aes(x = Instructional.Program.Title, y = PFT2)) + geom_point()
+ggplot(mydata, aes(x = Instructional.Program.Title, y = PFT3)) + geom_point()
+ggplot(mydata, aes(x = Instructional.Program.Title, y = PFT4)) + geom_point()
+
+ggplot(data = mydata, mapping = aes(x = WFT2, y = WFT4)) +
+  geom_point(mapping = aes(color = Instructional.Program.Title)) +
+  geom_smooth()
+
+```
+
+I want to fit a regression model on the data.
+
+```{r}
+model1 <- lm(WFT4 ~ WFT2, data = mydata)
+model1
+
+summary(model1)
+```
+
+This translates to a regression of Wages after Year 4 on Wages after Year 2. According to our model, for every additional dollar amount earned after 2 years working full-time, we expect an additional 0.9995 earned in the 4th year after graduation while working full-time. This tells us that it does matter to obtain a higher-paying position just after graduation, but it may not matter all that much.
+
+
+The Data Explorer report is also attached, which was produced using the following code:
+DataExplorer::create_report(mydata)
+
